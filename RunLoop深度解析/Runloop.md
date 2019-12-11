@@ -1,3 +1,5 @@
+
+
 ## Runloop
 
 
@@ -10,7 +12,6 @@ RunLoop被称为“运行循环”，其实就是一个“event loop”，伪代
 
 ```
 while(var) {
-    observe()
 		doTask()
 		wait...
 		wakeUp()
@@ -148,6 +149,139 @@ CFRunLoopRef CFRunLoopGetCurrent(void) {
 
 
 
+#### RunLoop中的mode
+
+----
+
+先看一下RunLoop，RunLoopMode的数据结构
+
+```
+struct __CFRunLoop {
+    CFRuntimeBase _base;
+    pthread_mutex_t _lock;			/* locked for accessing mode list */
+    __CFPort _wakeUpPort;			// used for CFRunLoopWakeUp 
+    Boolean _ignoreWakeUps;
+    volatile uint32_t *_stopped;
+    pthread_t _pthread;
+    uint32_t _winthread;
+    CFMutableSetRef _commonModes;
+    CFMutableSetRef _commonModeItems;
+    CFRunLoopModeRef _currentMode;
+    CFMutableSetRef _modes;
+    struct _block_item *_blocks_head;
+    struct _block_item *_blocks_tail;
+    CFTypeRef _counterpart;
+};
+
+struct __CFRunLoopMode {
+    CFRuntimeBase _base;
+    pthread_mutex_t _lock;	/* must have the run loop locked before locking this */
+    CFStringRef _name;
+    Boolean _stopped;
+    char _padding[3];
+    CFMutableSetRef _sources0;
+    CFMutableSetRef _sources1;
+    CFMutableArrayRef _observers;
+    CFMutableArrayRef _timers;
+    CFMutableDictionaryRef _portToV1SourceMap;
+    __CFPortSet _portSet;
+    CFIndex _observerMask;
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+    mach_port_t _timerPort;
+#endif
+#if DEPLOYMENT_TARGET_WINDOWS
+    HANDLE _timerPort;
+    DWORD _msgQMask;
+    void (*_msgPump)(void);
+#endif
+};
+
+struct __CFRunLoopSource {
+    CFRuntimeBase _base;
+    uint32_t _bits;
+    pthread_mutex_t _lock;
+    CFIndex _order;			/* immutable */
+    CFMutableBagRef _runLoops;
+    union {
+	CFRunLoopSourceContext version0;	/* immutable, except invalidation */
+        CFRunLoopSourceContext1 version1;	/* immutable, except invalidation */
+    } _context;
+};
+
+struct __CFRunLoopTimer {
+    CFRuntimeBase _base;
+    uint16_t _bits;
+    pthread_mutex_t _lock;
+    CFRunLoopRef _runLoop;
+    CFMutableSetRef _rlModes;
+    CFAbsoluteTime _nextFireDate;
+    CFTimeInterval _interval;		/* immutable */
+    int64_t _fireTSR;			/* TSR units */
+    CFIndex _order;			/* immutable */
+    CFRunLoopTimerCallBack _callout;	/* immutable */
+    CFRunLoopTimerContext _context;	/* immutable, except invalidation */
+};
+
+struct __CFRunLoopObserver {
+    CFRuntimeBase _base;
+    pthread_mutex_t _lock;
+    CFRunLoopRef _runLoop;
+    CFIndex _rlCount;
+    CFOptionFlags _activities;		/* immutable */
+    CFIndex _order;			/* immutable */
+    CFRunLoopObserverCallBack _callout;	/* immutable */
+    CFRunLoopObserverContext _context;	/* immutable, except invalidation */
+};
+
+```
+
+
+
+RunLoop是一个结构体对象，绑定了一个线程，包含当前正在运行的Mode，N个Mode，N个CommonMode
+
+![img](pic/31576058931.jpg)
+
+从代码和图中可以看出：
+
+- runloop和线程一一对应
+- runloop包含多个mode，mode包含多个modeitem(source，timers, observers)
+- runloop每次只能运行在一个mode下：
+  - 切换mode必须先停止mode，然后设置mode，重新run
+  - runloop通过切换mode来筛选要处理的事件，让其互不影响
+  - 这是iOS运行流畅的关键
+
+__CFRunLoopMode负责管理所有的事件，而runloop负责管理mode：
+
+- 一个mode包括N个source0，N个source1，N个observers，N个timers。
+- mode是可以定制的，至少包含一个mode item，同一个mode item可以被多个mode持有
+- 一个mode可以将自己标记为"common"属性，标记为common属性的mode-A，会自动将runloop中commonModeitems同步到mode-A的items中去
+
+
+
+一个RunLoop包含多个Mode，每个Mode又包含多个Source/Timer/Observer。同一时刻，RunLoop只能运行其中一个Mode。如何需要切换Mode，只能退出loop，指定mode后重新进入。
+
+###### Input Source
+
+###### Timer
+
+###### Observer
+
+
+
+#### RunLoop的工作流程
+
+-----
+
+![img](pic/162a5b8323373d82)
+
+#### RunLoop中的事件源
+
+-----
+
+
+
+
+
 #### RunLoop中比较重要的几个概念
 
 ------
@@ -208,9 +342,7 @@ CFRunLoopRef CFRunLoopGetCurrent(void) {
 
 #### RunLoop & RunLoop mode & source/observer/timer的关系
 
-------
 
-![RunLoop_0](https://blog.ibireme.com/wp-content/uploads/2015/05/RunLoop_0.png)
 
 
 
