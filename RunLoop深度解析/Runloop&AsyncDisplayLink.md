@@ -2,12 +2,15 @@
 
 
 
-- http://mrpeak.cn/blog/ios-runloop/
-- https://blog.ibireme.com/2015/05/18/runloop/
-- [https://dnduuhn.com/2018/12/15/iOS-Runloop%E4%B8%8E%E7%BA%BF%E7%A8%8B%E4%BF%9D%E6%B4%BB/](https://dnduuhn.com/2018/12/15/iOS-Runloop与线程保活/)
-- https://www.jianshu.com/p/d7ca3995de49
 
-###### 源码
 
-- https://opensource.apple.com/source/CF/CF-635.19/CFRunLoop.c.auto.html
+
+
+#### 阅读资料
+
+-----
+
+- [https://medium.com/jike-engineering/asyncdisplaykit%E4%BB%8B%E7%BB%8D-%E4%B8%80-6b871d29e005](https://medium.com/jike-engineering/asyncdisplaykit介绍-一-6b871d29e005)
+- https://www.jianshu.com/p/a559e76145d5
+- https://www.kancloud.cn/digest/smooth_user_interfaces_for_ios/82290
 
