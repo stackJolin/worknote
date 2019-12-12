@@ -136,7 +136,7 @@ $ git cat-file -p fdf4fc3
 
 -------
 
-<img src="pic/51576137716.jpg" width=200 align=left>
+<img src="pic/51576137716.jpg" width=400 align=left>
 
 我们看到的分支是一个逐渐演进的线条。其实分支的本质是：一个指向一系列提交之首的指针和引用，如下所示：
 
