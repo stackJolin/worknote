@@ -1,6 +1,6 @@
 
 
-## Git原理
+## Git原理 - 存储
 
 Git是一个<font color=red>免费&开源</font>的分布式版本控制系统-DVCS(distributed version control system)，旨在快速、高效的处理从小型到大型项目的所有内容
 
@@ -182,3 +182,11 @@ tag其实也是Git对象的一种。tag object指向的是一个提交对象，t
 -------
 
 - SHA-1的问题 - google 两张不同的pdf文件，SHA-1的值是一直的
+
+
+
+#### 资料
+
+------
+
+- https://git-scm.com/book/en/v2
