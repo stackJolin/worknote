@@ -20,6 +20,20 @@ filed.cell?.truncatesLastVisibleLine = true
 
 
 
+```
+mac图标如何不显示在Dock中：
+info.plist中添加如下内容：
+<key>LSUIElement</key>
+<true/>
+```
+
+
+
+```
+Mac开发-App开机启动
+
+```
+
 
 
 #### Issue
