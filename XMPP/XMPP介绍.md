@@ -6,6 +6,8 @@ Openfire
 
 Smack
 
+SASL：Simple Authentication and Security Layer
+
 
 
 ####资料
@@ -20,3 +22,4 @@ Smack
 - [Openfire中文教程]("http://myopenfire.com/article/getarticle/3")
 - [Smack]("https://github.com/igniterealtime/Smack")
 
+Tvc4Dpa
