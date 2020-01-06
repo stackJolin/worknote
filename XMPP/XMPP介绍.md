@@ -21,6 +21,8 @@ Openfire
 
 Smack
 
+SASL：Simple Authentication and Security Layer
+
 
 
 `*Openfire是基于XMPP(Jabber)的开源实时协作(RTC)协议。Openfire安装和使用都非常简单，并利用Web进行管理。单台服务器可支持上万并发用户。Openfire是用Java语言编写的，并且支持插件开发，如：查找联系人的服务就是以插件的形式提供的*`
@@ -50,3 +52,4 @@ systemctl start iptables
 - [Openfire中文教程]("http://myopenfire.com/article/getarticle/3")
 - [Smack]("https://github.com/igniterealtime/Smack")
 
+Tvc4Dpa
