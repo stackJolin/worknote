@@ -138,6 +138,8 @@ https://github.com/CocoaPods/Xcodeproj/pull/687
 - SPM工作流程
 - SPM依赖拓扑图
 - SMP源码解读
+- 如何创建一个Swift库，供其他人使用
+- 之前发布的私有库或者公有库如何支持SPM
 
 
 
