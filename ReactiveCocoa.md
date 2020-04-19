@@ -11,6 +11,17 @@
 
 
 
+#### 关于ReactiveCocoa的三方库
+
+------
+
+- ReactiveViewModel：ReactiveCocoa的作者写的
+- ReactiveCocoaLayout
+
+
+
+
+
 #### 其他知识点
 
 ------
@@ -23,4 +34,5 @@
 ----
 
 - https://www.open-open.com/lib/view/open1487303366014.html
-
+- https://teehanlax.com/blog/model-view-viewmodel-for-ios/
+- https://martinfowler.com/eaaDev/PresentationModel.html
