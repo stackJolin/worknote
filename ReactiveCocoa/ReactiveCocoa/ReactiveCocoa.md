@@ -23,6 +23,26 @@
 
 
 
+#### ReactiveCocoa的核心模块
+
+----
+
+- 信号源：`RACStream` 及其子类
+
+- 订阅者：`RACSubscriber` 的实现类及其子类
+- 调度器：`RACScheduler` 及其子类
+- 清洁工：`RACDisposable` 及其子类
+
+
+
+#### Rac所解决的问题
+
+-----
+
+
+
+
+
 #### 其他知识点
 
 ------
