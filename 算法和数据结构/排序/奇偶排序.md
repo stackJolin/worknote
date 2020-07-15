@@ -1,0 +1,120 @@
+##知识整理
+
+9之前
+
+
+
+#### 基础知识
+
+------
+
+- Object-C基础知识
+
+- Object-C中的Block
+
+- KVO原理
+
+- KVC查找策略
+
+- GCD
+
+- KVC
+
+- KVO
+
+- 线程安全
+
+- CoreText
+
+- iOS类、元类、isa指针
+
+- CoreImage
+
+- AVFoundation
+
+- 事件响应
+
+- 内存管理
+
+  - iOS内存范围:https://www.jianshu.com/p/58ca7e5e97a5
+  - weak的底层原理
+
+- Swift知识，高级用法
+
+- Runtime
+
+- RunLoop
+
+- 编译基础知识
+
+- Mac开发
+
+  - 基础知识
+  - 系统知识
+
+  
+
+#### 三方框架
+
+------
+
+- SDWebImage
+- AFNetworking
+- Alamofire
+- Kingfisher
+- RSwift
+- coswift
+- Flutter
+- ReactiveCocoa
+- FMDB
+- Realm
+- WCDB
+- MJRfresh
+- YY系列
+  - YYCache
+  - YYModel
+
+
+
+#### 其他语言
+
+-----
+
+- Python
+- Ruby
+- Shell
+- JS
+
+
+
+#### 架构
+
+-------
+
+- 面向对象和面向协议
+- MVVM
+- 协程
+- 组件化
+
+
+
+#### 算法
+
+-------
+
+
+
+#### 项目管理/工程管理
+
+------
+
+- Git
+
+  - git submodule
+  - git subtree
+
+- CocoaPods
+
+- SwiftPM
+
+  
