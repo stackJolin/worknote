@@ -8,4 +8,4 @@
 - Typora：Markdown文档编辑软件，支持标准的markdown语法，支持绘图，强大到无法自拔
 - CarTool：github开源工具，如果你想获取其他App包文件中的资源，尤其是图片资源，这个软件就是你的天使，不过貌似最新版本有问题，有兴趣的可以自己参考代码撸一个。个人撸了一个：https://github.com/stackJolin/UnPackCar
 - WorkSync：个人撸的一个小软件，楼主有多台设备，需要同步代码，所以才有了这个东东。主要用来git自动pull & push
-
+- MachOview：是一个查看MachO格式文件信息的开源工具
