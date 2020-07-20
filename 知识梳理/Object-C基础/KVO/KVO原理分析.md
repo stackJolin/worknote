@@ -8,6 +8,10 @@ KVO是根据KVC来实现的
 
 
 
+#### 如何手动触发KVO
+
+----
+
 
 
 #### 相关文章
@@ -24,9 +28,13 @@ KVO是根据KVC来实现的
 
   https://www.jianshu.com/p/a25488928a30
 
-- 
+- https://juejin.im/post/5d19fa62f265da1ba91595bb
 
 #### 相关应用
 
 ----
+
+**willChangeValueForKey**
+
+**didChangeValueForKey**
 
