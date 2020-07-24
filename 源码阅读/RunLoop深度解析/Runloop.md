@@ -24,7 +24,7 @@ while(var) {
 - 处理App的各种事件
 - 节省CPU资源，提高程序运行性能
 
-
+实现Runloop的关键点在于：如何管理事件/消息，如何让线程在没有处理消息时休眠以避免资源占用、在有消息到来时立刻被唤醒。
 
 
 
@@ -659,3 +659,10 @@ NSURLConnectionLoader 中的 RunLoop 通过一些基于 mach port 的 Source 接
 
 
 
+#### Runloop源码
+
+-----
+
+http://opensource.apple.com/tarballs/CF/ 
+
+https://github.com/apple/swift-corelibs-foundation/
