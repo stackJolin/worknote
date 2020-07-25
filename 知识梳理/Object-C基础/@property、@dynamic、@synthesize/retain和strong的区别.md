@@ -1,16 +1,5 @@
 ## retain和strong的区别
 
+声明属性时用strong或者retain效果是一样的（貌似更多开发者更倾向于用strong）。不过在声明Block时，使用strong和retain会有截然不同的效果。strong会等于copy，而retain竟然等于assign！
 
-
-#### 知识点
-
-----
-
-- 
-
-#### 相关文章
-
------
-
-https://www.jianshu.com/p/e2ccf2ae2b98
-
+当然定义Block还是应该用copy（还有其他需要注意的地方，可以参考这篇文章：iOS: ARC和非ARC下使用Block属性的问题），因为非ARC下不copy的Block会在栈中，ARC中的Block都会在堆上的。

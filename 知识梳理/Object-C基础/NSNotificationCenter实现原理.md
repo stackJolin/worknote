@@ -32,12 +32,6 @@
 
 
 
-
-
-#### 同步发送和异步发
-
-
-
 #### NSNotification需要注意的问题
 
 -----
@@ -66,14 +60,18 @@ id observer = [[NSNotificationCenter defaultCenter] addObserverForName:@"block" 
 }];
 首先点击发送通知，控制台会打印block方式受到系统通，然后点击注销通知，再点击发送通知，依然会打印；如果退出当前控制器，并且再进入一次控制器，点击发送通知，控制器会打印2次
 首先，在使用block方式注册通知的时候，我们只是传了block，并没有传Observer监听者，NSNotificationCenter直接持有block
-所以，需要在dealloc的时候 observer
+所以，需要在dealloc的时候将observer移除
 - (void)dealloc {
-    if (_observer) {
+    if (observer) {
         [[NSNotificationCenter defaultCenter] removeObserver:_observer];
-        _observer = nil;
+        observer = nil;
     }
 }
 
 如果，block里面引用了self，那么需要加__weak
 ```
 
+其实归根结底就两个问题：
+
+- 线程问题：主要通知的发送和接受在同一个线程。这也是为什么NSNotification是线程安全的原因
+- 释放问题；主要是移除监听者
