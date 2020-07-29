@@ -12,6 +12,22 @@ SDMemoryCache继承自NSCache。NSCache天然的缺点：收到内存警告，�
 
 
 
+#### SDWebimage缓存相关协议
+
+-----
+
+- SDImageCache
+
+  这个协议里面的方法都是required的，也就是必须要实现的
+
+  
+
+  ```objective-c
+  @protocol SDImageCache <NSObject>
+  ```
+
+  
+
 #### SDWebImage缓存相关类
 
 -----
@@ -23,7 +39,9 @@ SDMemoryCache继承自NSCache。NSCache天然的缺点：收到内存警告，�
   NSMutableArray<id<SDImageCache>> *_imageCaches;
   ```
 
-- SDImageCache
+- SDImageCach
+
+- e
 
   ```
   SDImageCache是一个协议，同时，也是一个类。协议，方便使用这自己实现一份Cache添加到SDImageCacheManager
