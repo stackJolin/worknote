@@ -19,128 +19,37 @@
 源码链接：https://opensource.apple.com/source/libclosure/libclosure-67/runtime.c.auto.html
 
 ```c++
-static int32_t latching_incr_int(volatile int32_t *where) {
-    while (1) {
-        int32_t old_value = *where;
-        if ((old_value & BLOCK_REFCOUNT_MASK) == BLOCK_REFCOUNT_MASK) { // 如果引用计数达到最大，直接返回，30000多个指针指向，一般不会出现
-            return BLOCK_REFCOUNT_MASK;
-        }
-        // 随后做一次原子性判断其值当前是否被其他线程改动，如果被改动就进入下一次循环直到改动结束后赋值。OSAtomicCompareAndSwapInt的作用就是在where   
-        // 取值与old_value相同时，将old_value+2赋给where。 注:Block的引用计数以flags的后16位代表，以 2为单位，每次递增2，1被 
-        // BLOCK_DEALLOCATING正在释放占用。
-        if (OSAtomicCompareAndSwapInt(old_value, old_value+2, where)) {
-            return old_value+2;
-        }
-    }
-}
-
-#if 0
-static struct Block_descriptor_1 * _Block_descriptor_1(struct Block_layout *aBlock)
-{
-    return aBlock->descriptor;
-}
-#endif
-
-static struct Block_descriptor_2 * _Block_descriptor_2(struct Block_layout *aBlock)
-{
-    if (! (aBlock->flags & BLOCK_HAS_COPY_DISPOSE)) return NULL;
-    uint8_t *desc = (uint8_t *)aBlock->descriptor;
-    desc += sizeof(struct Block_descriptor_1);
-    return (struct Block_descriptor_2 *)desc;
-}
-
-static struct Block_descriptor_3 * _Block_descriptor_3(struct Block_layout *aBlock)
-{
-    if (! (aBlock->flags & BLOCK_HAS_SIGNATURE)) return NULL;
-    uint8_t *desc = (uint8_t *)aBlock->descriptor;
-    desc += sizeof(struct Block_descriptor_1);
-    if (aBlock->flags & BLOCK_HAS_COPY_DISPOSE) {
-        desc += sizeof(struct Block_descriptor_2);
-    }
-    return (struct Block_descriptor_3 *)desc;
-}
-
-static void _Block_call_copy_helper(void *result, struct Block_layout *aBlock)
-{
-    struct Block_descriptor_2 *desc = _Block_descriptor_2(aBlock);
-    if (!desc) return;
-
-    (*desc->copy)(result, aBlock); // do fixup
-}
-
-static void _Block_call_dispose_helper(struct Block_layout *aBlock)
-{
-    struct Block_descriptor_2 *desc = _Block_descriptor_2(aBlock);
-    if (!desc) return;
-
-    (*desc->dispose)(aBlock);
-}
-
-
 void *_Block_copy(const void *arg) {
-    // 声明一个Block_layout变量
     struct Block_layout *aBlock;
-    // 如果传入的block不存在的话，直接返回
+
     if (!arg) return NULL;
     
     // The following would be better done as a switch statement
     aBlock = (struct Block_layout *)arg;
-    if (aBlock->flags & BLOCK_NEEDS_FREE) { // 如果是一个 堆区 的block，就对其引用计数递增，然后返回Block。
+    if (aBlock->flags & BLOCK_NEEDS_FREE) {
         // latches on high
         latching_incr_int(&aBlock->flags);
         return aBlock;
     }
-    else if (aBlock->flags & BLOCK_IS_GLOBAL) { // 如果是一个 全局区 的block,直接返回
+    else if (aBlock->flags & BLOCK_IS_GLOBAL) {
         return aBlock;
     }
-    else { // 如果是一个栈区的block
+    else {
         // Its a stack block.  Make a copy.
-        // 新分配一块堆区内存，如果分配失败，直接返回
         struct Block_layout *result = malloc(aBlock->descriptor->size);
         if (!result) return NULL;
-        
-        // 如果分配成功，将栈区的block copy一份到上面初始化的堆区内存
         memmove(result, aBlock, aBlock->descriptor->size); // bitcopy first
-        
         // reset refcount
-        // 重置引用计数 BLOCK_REFCOUNT_MASK|BLOCK_DEALLOCATING = oxFFFF,~(BLOCK_REFCOUNT_MASK|BLOCK_DEALLOCATING) = ox0000
-        // result->flags与0x0000与等就将result->flags的后16位置零。然后将新Block标识为堆Block并将其引用计数置为2
         result->flags &= ~(BLOCK_REFCOUNT_MASK|BLOCK_DEALLOCATING);    // XXX not needed
         result->flags |= BLOCK_NEEDS_FREE | 2;  // logical refcount 1
         _Block_call_copy_helper(result, aBlock);
         // Set isa last so memory analysis tools see a fully-initialized object.
-        // 修改block类型
         result->isa = _NSConcreteMallocBlock;
         return result;
     }
 }
 
-static bool latching_decr_int_should_deallocate(volatile int32_t *where) {
-    while (1) {
-        int32_t old_value = *where;
-        // 引用计数太大，直接返回false
-        if ((old_value & BLOCK_REFCOUNT_MASK) == BLOCK_REFCOUNT_MASK) {
-            return false; // latched high
-        }
-        // 引用计数为0，直接返回
-        if ((old_value & BLOCK_REFCOUNT_MASK) == 0) {
-            return false;   // underflow, latch low
-        }
-        
-        int32_t new_value = old_value - 2;
-        bool result = false;
-        if ((old_value & (BLOCK_REFCOUNT_MASK|BLOCK_DEALLOCATING)) == 2) {
-            new_value = old_value - 1;
-            result = true;
-        }
-        if (OSAtomicCompareAndSwapInt(old_value, new_value, where)) {
-            return result;
-        }
-    }
-}
-
 void _Block_release(const void *arg) {
-    // block不存在 || block是全局block || block是栈区block ,直接return
     struct Block_layout *aBlock = (struct Block_layout *)arg;
     if (!aBlock) return;
     if (aBlock->flags & BLOCK_IS_GLOBAL) return;
@@ -205,8 +114,6 @@ static struct Block_byref *_Block_byref_copy(const void *arg) {
     
     return src->forwarding;
 }
-
-
 
 static void _Block_byref_release(const void *arg) {
     struct Block_byref *byref = (struct Block_byref *)arg;
@@ -336,10 +243,3 @@ void _Block_object_dispose(const void *object, const int flags) {
 }
 ```
 
-
-
-#### 相关文章
-
------
-
-- https://www.jianshu.com/p/d96d27819679
