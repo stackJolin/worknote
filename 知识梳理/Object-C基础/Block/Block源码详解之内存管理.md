@@ -20,14 +20,17 @@
 
 ```c++
 static int32_t latching_incr_int(volatile int32_t *where) {
+    // TODO：zhuhoulin，这里为什么使用循环？个人感觉和自旋锁一样，提升效率
     while (1) {
+        // 获取当前的Block_layout的flag
         int32_t old_value = *where;
-        if ((old_value & BLOCK_REFCOUNT_MASK) == BLOCK_REFCOUNT_MASK) { // 如果引用计数达到最大，直接返回，30000多个指针指向，一般不会出现
+        // 如果引用计数达到最大，直接返回，30000多个指针指向，一般不会出现
+        if ((old_value & BLOCK_REFCOUNT_MASK) == BLOCK_REFCOUNT_MASK) { 
             return BLOCK_REFCOUNT_MASK;
         }
-        // 随后做一次原子性判断其值当前是否被其他线程改动，如果被改动就进入下一次循环直到改动结束后赋值。OSAtomicCompareAndSwapInt的作用就是在where   
-        // 取值与old_value相同时，将old_value+2赋给where。 注:Block的引用计数以flags的后16位代表，以 2为单位，每次递增2，1被 
-        // BLOCK_DEALLOCATING正在释放占用。
+        // 随后做一次原子性判断其值当前是否被其他线程改动，如果被改动就进入下一次循环直到改动结束后赋值。
+        // OSAtomicCompareAndSwapInt的作用就是在where取值与old_value相同时，将old_value+2赋给where。
+        // 需要知道的是，Block的引用计数以flags的后16位代表，以 2为单位，每次递增2，1被BLOCK_DEALLOCATING正在释放占用。
         if (OSAtomicCompareAndSwapInt(old_value, old_value+2, where)) {
             return old_value+2;
         }
@@ -43,17 +46,24 @@ static struct Block_descriptor_1 * _Block_descriptor_1(struct Block_layout *aBlo
 
 static struct Block_descriptor_2 * _Block_descriptor_2(struct Block_layout *aBlock)
 {
+    // 如果flag没有标记为支持copy和dispose助手，return
     if (! (aBlock->flags & BLOCK_HAS_COPY_DISPOSE)) return NULL;
+    // 获取aBlock的descriptor地址，这里能够知道，这个aBlock->descriptor是Block_descriptor_1类型的
     uint8_t *desc = (uint8_t *)aBlock->descriptor;
+    // 移动指针，指向Block_descriprot_2类型的指针,并返回
     desc += sizeof(struct Block_descriptor_1);
     return (struct Block_descriptor_2 *)desc;
 }
 
 static struct Block_descriptor_3 * _Block_descriptor_3(struct Block_layout *aBlock)
 {
+    // 如果flag没有标记为支持copy和dispose助手，return
     if (! (aBlock->flags & BLOCK_HAS_SIGNATURE)) return NULL;
+    // 获取aBlock的descriptor地址，这里能够知道，这个aBlock->descriptor是Block_descriptor_1类型的
     uint8_t *desc = (uint8_t *)aBlock->descriptor;
+    // 移动指针，指向Block_descriprot_2类型的指针,并返回
     desc += sizeof(struct Block_descriptor_1);
+    // 如果有dispose和copy助手，继续移动指针
     if (aBlock->flags & BLOCK_HAS_COPY_DISPOSE) {
         desc += sizeof(struct Block_descriptor_2);
     }
@@ -64,8 +74,17 @@ static void _Block_call_copy_helper(void *result, struct Block_layout *aBlock)
 {
     struct Block_descriptor_2 *desc = _Block_descriptor_2(aBlock);
     if (!desc) return;
-
+    // 这个实现方法是在编译的时候生成的，详见block源码解析。方法内部调用的是_Block_object_assign方法
     (*desc->copy)(result, aBlock); // do fixup
+}
+
+// 这个是编译的时候生成的copy方法,对应的还有dispose方法
+static void __main_block_copy_0(struct __main_block_impl_0*dst, struct __main_block_impl_0*src) {
+    // 这个d是，外部的变量。编译的时候自动生成的
+  	_Block_object_assign((void*)&dst->d, (void*)src->d, 8/*BLOCK_FIELD_IS_BYREF*/);
+}
+static void __main_block_dispose_0(struct __main_block_impl_0*src) {
+  	_Block_object_dispose((void*)src->d, 8/*BLOCK_FIELD_IS_BYREF*/);
 }
 
 static void _Block_call_dispose_helper(struct Block_layout *aBlock)
@@ -103,12 +122,14 @@ void *_Block_copy(const void *arg) {
         memmove(result, aBlock, aBlock->descriptor->size); // bitcopy first
         
         // reset refcount
-        // 重置引用计数 BLOCK_REFCOUNT_MASK|BLOCK_DEALLOCATING = oxFFFF,~(BLOCK_REFCOUNT_MASK|BLOCK_DEALLOCATING) = ox0000
+        //            Ox0001                0xFFFE
+        // 重置引用计数 BLOCK_REFCOUNT_MASK | BLOCK_DEALLOCATING = oxFFFF,~(BLOCK_REFCOUNT_MASK | BLOCK_DEALLOCATING) = ox0000
         // result->flags与0x0000与等就将result->flags的后16位置零。然后将新Block标识为堆Block并将其引用计数置为2
         result->flags &= ~(BLOCK_REFCOUNT_MASK|BLOCK_DEALLOCATING);    // XXX not needed
+        // BLOCK_NEEDS_FREE = Ox0100 0000, result->flags = 0x0100 0002，低16位表示引用计数
+        // TODO: 为什么这里的引用计数是+2
         result->flags |= BLOCK_NEEDS_FREE | 2;  // logical refcount 1
         _Block_call_copy_helper(result, aBlock);
-        // Set isa last so memory analysis tools see a fully-initialized object.
         // 修改block类型
         result->isa = _NSConcreteMallocBlock;
         return result;
@@ -157,6 +178,21 @@ void _Block_release(const void *arg) {
 <font color=orange>**_Block_retain_object和 _Block_release_object：**</font>
 
 ```c++
+static void _Block_retain_object_default(const void *ptr __unused) { }
+
+static void _Block_release_object_default(const void *ptr __unused) { }
+
+static void _Block_destructInstance_default(const void *aBlock __unused) {}
+// 默认的_Block_retain_object被赋值为_Block_retain_object_default，即什么都不做
+static void (*_Block_retain_object)(const void *ptr) = _Block_retain_object_default;
+static void (*_Block_release_object)(const void *ptr) = _Block_release_object_default;
+static void (*_Block_destructInstance) (const void *aBlock) = _Block_destructInstance_default;
+
+void _Block_use_RR2(const Block_callbacks_RR *callbacks) {
+    _Block_retain_object = callbacks->retain;
+    _Block_release_object = callbacks->release;
+    _Block_destructInstance = callbacks->destructInstance;
+}
 
 ```
 
@@ -234,11 +270,41 @@ static void _Block_byref_release(const void *arg) {
 
 ---
 
+先了解一下，下面几个枚举
+
+```c++
+// Values for _Block_object_assign() and _Block_object_dispose() parameters
+enum {
+    // see function implementation for a more complete description of these fields and combinations
+    // OC对象类型
+    BLOCK_FIELD_IS_OBJECT   =  3,  // id, NSObject, __attribute__((NSObject)), block, ...
+    // 另一个block
+    BLOCK_FIELD_IS_BLOCK    =  7,  // a block variable
+    // 一个背block修饰后，生成的结构体
+    BLOCK_FIELD_IS_BYREF    =  8,  // the on stack structure holding the __block variable
+    // 被__weak修饰后的弱引用，只在Block_byref管理内存对象时使用，也就是__block __weak id
+    BLOCK_FIELD_IS_WEAK     = 16,  // declared __weak, only used in byref copy helpers
+    // 在处理Block_byref内部对象内存的时候会加的一个额外标记，配合上面的枚举一起使用；
+    BLOCK_BYREF_CALLER      = 128, // called from __block (byref) copy/dispose support routines.
+};
+
+enum {
+    BLOCK_ALL_COPY_DISPOSE_FLAGS = 
+        BLOCK_FIELD_IS_OBJECT | BLOCK_FIELD_IS_BLOCK | BLOCK_FIELD_IS_BYREF |
+        BLOCK_FIELD_IS_WEAK | BLOCK_BYREF_CALLER
+};
+```
+
+
+
+
+
 ```c++
 void _Block_object_assign(void *destArg, const void *object, const int flags) {
+    // destArg为执行Block_copy()后的block中的对象、block、或者BYREF指针的指针，obj为copy之前的变量指针
     const void **dest = (const void **)destArg;
     switch (os_assumes(flags & BLOCK_ALL_COPY_DISPOSE_FLAGS)) {
-        case BLOCK_FIELD_IS_OBJECT:
+        case BLOCK_FIELD_IS_OBJECT: // 如果外部变量是对象、block或者tyref类型，增加object变量的引用计数
             /*******
             id object = ...;
             [^{ object; } copy];
