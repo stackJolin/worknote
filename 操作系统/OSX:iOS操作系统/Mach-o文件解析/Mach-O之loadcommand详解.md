@@ -4,6 +4,8 @@
 
   Mach-O文件的主要功能在于加载命令(load command)，他用于描述文件在虚拟内存中的逻辑与布局。加载命令仅跟在文件头之后，文件头中的两个字段`ncmds`和`sizeofncmds`用于解析加载命令
 
+  
+
   有一些部分是由内核负责加载的，还有一部分是由动态链接器负责加载的
 
   - 内核加载器指令
@@ -22,6 +24,10 @@
 
   
 
+  `Load Commands `包含Mach-O里命令类型信息、名称和二进制文件的位置
+
+  
+
   #### LoadCommand
 
   -----
@@ -34,8 +40,8 @@
   | ------------------------- | ------------------------------------------------------------ | ---- |
   | LC_SEGMENT_64(__PAGEZERO) | 空指针陷阱段，映射到虚拟内存空间的第一页，用于捕捉对NULL指针的引用。 |      |
   | LC_SEGMENT_64(__TEXT)     | 包含了 `执行代码` 以及 `其他只读数据` 。该段数据的保护级别为：VM_PROT_READ(读)、VM_PROT_EXECUTE(执行)，防止内存中被修改。 |      |
-  | LC_SEGMENT_64(__DATA)     | 包含了程序数据，可读/可写数据存放段。                        |      |
-  | LC_SEGMENT_64(__LINKEDIT) | 链接器使用的符号以及其他表，链接的部分，支持dyld，包含了一些符号表等数据。 |      |
+  | LC_SEGMENT_64(__DATA)     | 主要包含全局变量和静态变量，这个段的内容由每个进程单独维护   |      |
+  | LC_SEGMENT_64(__LINKEDIT) | 主要包含链接器使用的符号以及其他表(比如函数名称、地址等)。这个段的内容是多进程共用的 |      |
   | LC_SYMTAB                 | 符号表信息                                                   |      |
   | LC_DYSYMTAB               | 动态符号表信息                                               |      |
   | LC_LOAD_DYLINKER          | 加载动态链接器（/usr/lib/dyld），使用Mach-O文件的时候链接器，可以看到name为 /usr/lib/dyld 的链接器来加载Mach-O文件。 |      |
@@ -210,6 +216,40 @@
   | __DATA                                | __swift_hooks      |                                                             |
   | __DATA                                | __bss              | BSS，存放为初始化的全局变量，即常说的静态内存分配           |
   | __DATA                                | __common           | 没有初始化过的符号声明                                      |
+
+  
+
+  #### LC_ENCRYPTION_INFO
+
+  ------
+
+  ```c++
+  struct encryption_info_command {
+     uint32_t	cmd;		/* LC_ENCRYPTION_INFO */
+     uint32_t	cmdsize;	/* sizeof(struct encryption_info_command) */
+     uint32_t	cryptoff;	/* file offset of encrypted range */
+     uint32_t	cryptsize;	/* file size of encrypted range */
+     uint32_t	cryptid;	/* which enryption system,
+  				   0 means not-encrypted yet */
+  };
+  
+  /*
+   * The encryption_info_command_64 contains the file offset and size of an
+   * of an encrypted segment (for use in x86_64 targets).
+   */
+  struct encryption_info_command_64 {
+     uint32_t	cmd;		/* LC_ENCRYPTION_INFO_64 */
+     uint32_t	cmdsize;	/* sizeof(struct encryption_info_command_64) */
+     uint32_t	cryptoff;	/* file offset of encrypted range */
+     uint32_t	cryptsize;	/* file size of encrypted range */
+     uint32_t	cryptid;	/* which enryption system,
+  				   0 means not-encrypted yet */
+     uint32_t	pad;		/* padding to make this struct's size a multiple
+  				   of 8 bytes */
+  };
+  ```
+
+  
 
   
 

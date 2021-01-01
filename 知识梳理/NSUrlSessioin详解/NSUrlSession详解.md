@@ -6,9 +6,11 @@
 
 -----
 
-######类
+###### 类
 
 - NSUrlSessionTask
+
+  是一个抽象类，我们一般使用的是他的子类`NSUrlSessonDataTask`、`NSUrlSessionDownloadTask`、`NSUrlSessionUploadTask`、`NSUrlSessionStreamTask`以及最新的`NSUrlSessionWebSocketTask`
 
   ```
   @interface NSURLSessionTask : NSObject <NSCopying, NSProgressReporting>
@@ -16,17 +18,23 @@
 
 - NSUrlSessionDataTask
 
+  我们平常使用的`GET`和`POST`都是使用的`NSUrlSessionDataTask`，除此之外，他可以实现`文件上传`和`文件下载`，`NSUrlSessionDownloadTask`和`NSUrlSessionUploadTask`都是基于`NSUrlSessionDataTask`实现的。
+
   ```
   @interface NSURLSessionDataTask : NSURLSessionTask
   ```
 
 - NSUrlSessionUploadTask
 
+  用于文件上传
+
   ```
   @interface NSURLSessionUploadTask : NSURLSessionDataTask
   ```
 
 - NSUrlSessionDownloadTask
+
+  用于文件下载。支持断点续传，然后不足的是：不支持离线下载。这个时候就需要使用`NSUrlSessionDataTask`，这也是`SDWebImage`为什么不使用`NSUrlSessionDownloadTask`，而是使用`NSUrlSessionDataTask`的原因
 
   ```
   @interface NSURLSessionDownloadTask : NSURLSessionTask
@@ -104,6 +112,28 @@ typedef NS_ENUM(NSInteger, NSURLSessionTaskState) {
     NSURLSessionTaskStateCompleted = 3,                   /* The task has completed and the session will receive no more delegate notifications */
 }
 ```
+
+
+
+#### NSURLSessionDelegate
+
+---------
+
+```objective-c
+// 会话结束
+- (void)URLSession:(NSURLSession *)session didBecomeInvalidWithError:(nullable NSError *)error;
+
+// 请求客户端证书配置
+- (void)URLSession:(NSURLSession *)session didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge
+                                             completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential * _Nullable credential))completionHandler;
+
+// 后台网络任务完成回调
+- (void)URLSessionDidFinishEventsForBackgroundURLSession:(NSURLSession *)session API_AVAILABLE(ios(7.0), watchos(2.0), tvos(9.0)) API_UNAVAILABLE(macos);
+```
+
+
+
+
 
 #### NSURLSessionTaskDelegate
 
@@ -192,3 +222,73 @@ typedef NS_ENUM(NSInteger, NSURLSessionTaskState) {
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task
                            didCompleteWithError:(nullable NSError *)error;
 ```
+
+
+
+#### NSURLSessionDataDelegate
+
+------
+
+```objective-c
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask
+                                 didReceiveResponse:(NSURLResponse *)response
+                                  completionHandler:(void (^)(NSURLSessionResponseDisposition disposition))completionHandler;
+
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask
+                              didBecomeDownloadTask:(NSURLSessionDownloadTask *)downloadTask;
+
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask
+                                didBecomeStreamTask:(NSURLSessionStreamTask *)streamTask;
+
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask
+                                     didReceiveData:(NSData *)data;
+
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask
+                                  willCacheResponse:(NSCachedURLResponse *)proposedResponse 
+                                  completionHandler:(void (^)(NSCachedURLResponse * _Nullable cachedResponse))completionHandler;
+```
+
+
+
+#### NSURLSessionDownloadDelegate
+
+```objective-c
+- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask
+                              didFinishDownloadingToURL:(NSURL *)location;
+
+- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask
+                                           didWriteData:(int64_t)bytesWritten
+                                      totalBytesWritten:(int64_t)totalBytesWritten
+                              totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite;
+
+- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask
+                                      didResumeAtOffset:(int64_t)fileOffset
+                                     expectedTotalBytes:(int64_t)expectedTotalBytes;
+```
+
+
+
+#### NSURLSessionStreamDelegate
+
+```objective-c
+- (void)URLSession:(NSURLSession *)session readClosedForStreamTask:(NSURLSessionStreamTask *)streamTask;
+
+- (void)URLSession:(NSURLSession *)session writeClosedForStreamTask:(NSURLSessionStreamTask *)streamTask;
+
+- (void)URLSession:(NSURLSession *)session betterRouteDiscoveredForStreamTask:(NSURLSessionStreamTask *)streamTask;
+
+- (void)URLSession:(NSURLSession *)session streamTask:(NSURLSessionStreamTask *)streamTask
+                                 didBecomeInputStream:(NSInputStream *)inputStream
+                                         outputStream:(NSOutputStream *)outputStream;
+```
+
+
+
+#### NSURLSessionWebSocketDelegate
+
+```objective-c
+- (void)URLSession:(NSURLSession *)session webSocketTask:(NSURLSessionWebSocketTask *)webSocketTask didOpenWithProtocol:(NSString * _Nullable) protocol;
+
+- (void)URLSession:(NSURLSession *)session webSocketTask:(NSURLSessionWebSocketTask *)webSocketTask didCloseWithCode:(NSURLSessionWebSocketCloseCode)closeCode reason:(NSData * _Nullable)reason;
+```
+

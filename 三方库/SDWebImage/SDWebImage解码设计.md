@@ -22,10 +22,8 @@
 
   ```
   @protocol SDAnimatedImageCoder <SDImageCoder, SDAnimatedImageProvider>
-  
-  - (nullable instancetype)initWithAnimatedImageData:(nullable NSData *)data options:(nullable SDImageCoderOptions *)options;
   ```
-
+  
 - SDImageCodersManager
 
 - SDImageCoderHelper
