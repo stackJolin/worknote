@@ -39,7 +39,7 @@
 ###### 关于`URL Scheme`白名单：
 
 ```markdown
-`URL Scheme白名单`是`iOS 9`之后才有的，`iOS 9`之前是不需要设置的，如果`iOS 9`之后不添加白名单
+`URL Scheme白名单`是`iOS 9`之后才有的，`iOS 9`之前是不需要设置的
 
 在`iOS 9`之前，调用`canOpenUrl`方法，会返回当前App是否真正安装了，但是`iOS 9`之后，出于对隐私保护的考虑，这个方法调用会一直失败。只有添加了`URL Scheme 白名单`，在调用`canOpenUrl`的时候才会返回正确的结果。相当于，目前把`canOpenUrl`的作用范围限定在了`URL Scheme 白名单`中。
 
@@ -56,5 +56,9 @@
 2.对于一般应用来说，同一个`Scheme`的多个应用，优先调用哪一个，其实和`Bundle id`有关，通过精心伪造的`Bundle id`可以在其他`App`之前被调用到，进而拦截跳转，这也是`URL Scheme 劫持`的基础
 ```
 
+###### 如何限制自己App内的嵌套的`WebView`的`Scheme`跳转:
 
+```
+这是一个应用场景：我们自己的App中打开了其他的网站的网页，希望屏蔽掉网页中关于非自身`App`的跳转，那怎么屏蔽这这些`URL Scheme`。具体见:https://www.cnblogs.com/guoshaobin/p/11164006.html
+```
 
