@@ -1,6 +1,6 @@
 ## copy和strong的区别
 
-我们先约定一个前提：这里说的copy，值得是@property中的属性关键字copy。
+我们先约定一个前提：这里说的copy，指得是@property中的属性关键字copy。
 
 理解下面的内容，建议先看之前的内容`深拷贝和浅拷贝`
 
@@ -18,7 +18,7 @@
 
 ----
 
-先说一下结论：有可能是浅copy也有可能是深copy，因为归根结底，当使用copy这个关键字的时候，就是对被复制的对象执行copy操作，然后copy之后的结果赋值给对象所对应的数组属性所对应的成员变量。
+先说一下结论：有可能是`浅copy`也有可能是`深copy`，因为归根结底，当使用copy这个关键字的时候，就是对被复制的对象执行copy操作，然后copy之后的结果赋值给对象所对应的数组属性所对应的成员变量。
 
 ```objective-c
 @interface OCCopyTest : NSObject
@@ -113,3 +113,7 @@ test1.arr4-地址：0x600000768450，类型：__NSArrayM ，第一个元素的�
 。。。。
 
 由于NSMutableString、NSMutableArray、NSMutableDictionary、NSMutableData类型的数据obj，执行A.B = [obj copy]之后，生成的是一个新的不可变的对象，和原来的对象除了子元素引用之外，没有任何关系。所以对于obj本身的改动，不会波及到A.B的数据
+
+
+
+成长就是一个`自我否定`和`自我肯定`交叉演进的过程

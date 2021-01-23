@@ -292,3 +292,41 @@ typedef NS_ENUM(NSInteger, NSURLSessionTaskState) {
 - (void)URLSession:(NSURLSession *)session webSocketTask:(NSURLSessionWebSocketTask *)webSocketTask didCloseWithCode:(NSURLSessionWebSocketCloseCode)closeCode reason:(NSData * _Nullable)reason;
 ```
 
+
+
+#### NSURLSessionAuthChallengeDisposition
+
+-------
+
+```objc
+// 处理挑战的方式
+typedef NS_ENUM(NSInteger, NSURLSessionAuthChallengeDisposition) {
+    NSURLSessionAuthChallengeUseCredential = 0, // 使用客户端指定的方式处理挑战
+    NSURLSessionAuthChallengePerformDefaultHandling = 1, // 使用默认方式处理挑战，走端上系统中内置的公认机构的证书
+    NSURLSessionAuthChallengeCancelAuthenticationChallenge = 2, // 不接受本次挑战，取消TLS链接
+    NSURLSessionAuthChallengeRejectProtectionSpace = 3, // 拒绝本次挑战，下次重新挑战
+} API_AVAILABLE(macos(10.9), ios(7.0), watchos(2.0), tvos(9.0));
+```
+
+
+
+#### 
+
+```objective-c
+NSURLAuthenticationMethodDefault
+// 基本的 HTTP 验证，通过 NSURLCredential 对象提供用户名和密码。
+NSURLAuthenticationMethodHTTPBasic
+// 类似于基本的 HTTP 验证，摘要会自动生成，同样通过 NSURLCredential 对象提供用户名和密码。
+NSURLAuthenticationMethodHTTPDigest
+// 不会用于 URL Loading System，在通过 web 表单验证时可能用到。
+NSURLAuthenticationMethodHTMLForm
+NSURLAuthenticationMethodNegotiate
+NSURLAuthenticationMethodNTLM
+// 验证客户端的证书
+NSURLAuthenticationMethodClientCertificate
+// 指明客户端要验证服务端提供的证书
+NSURLAuthenticationMethodServerTrust
+```
+
+
+
