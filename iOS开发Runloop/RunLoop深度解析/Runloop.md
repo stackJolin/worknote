@@ -1,6 +1,6 @@
-
-
 ## Runloop
+
+-----------------
 
 
 
@@ -34,9 +34,11 @@ while(var) {
 
 ###### 线程
 
-```
+```markdown
 有的线程执行的任务是一条直线(A->B)。而另一些是一个圆(A->B->...->A)，直到以某种方式将他终止。圆形任务模型的线程是怎么实现的呢？没错，就是RunLoop
 ```
+
+
 
 ###### 线程和RunLoop的关系
 
@@ -44,6 +46,8 @@ while(var) {
 RunLoop为了线程而生，没有线程，就没有RunLoop。所以，RunLoop并没有方法可以创建他，只能在线程内通过函数获取(note:主线程例外的RunLoop可以在其他线程获取)。
 RunLoop和线程是一一对应的，Cocoa和CoreFundation框架都提供了RunLoop对象方便配置和管理线程的RunLoop
 ```
+
+
 
 ###### 主线程的RunLoop默认是启动的，非主线程默认是不启动的
 
@@ -81,11 +85,15 @@ int main(int argc, char * argv[]) {
 }
 ```
 
+
+
 ###### RunLoop的线程安全问题
 
 ```
 Cocoa中的NSRunLoop类并不是线程安全的，我们无法在一个线程去操作另外一个线程的RunLoop对象。但是CoreFundataion中的CFRunLoopRef是线程安全的。Cocoa中的NSRunLoop可以通过实例方法getCFRunLoop来获取
 ```
+
+
 
 苹果不允许直接创建RunLoop，只能获取。获取的过程中，如果当前线程不存在RunLoop，会自动创建一个，并关联到当前线程，线程和RunLoop的对应关系存储在一个全局字典`static CFMutableDictionaryRef __CFRunLoops = NULL;`
 

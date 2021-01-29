@@ -1,4 +1,28 @@
-## NSOperation
+## NSOperation和NSOperationQueue介绍
+
+------------
+
+我们知道，`NSOperation`和`NSOperationQueue`是基于`GCD`的封装。`NSOperationQueue`相当于`dispatch_group`，而`NSOperation`相当于`dispatch_block_t`
+
+需要注意的是，`NSOperation`和`NSOperationQueue`是`iOS2.0`开始就有的，而`GCD`是`iOS4.0`之后推出的，只不过，在`GCD`推出之后，`NSOperation`和`NSOperationQueue`用`GCD`重写了一遍
+
+
+
+#### NSOperation和GCD的对比
+
+----------
+
+1. GCD是一套 C 语言API,执行和操作简单高效，因此NSOperation底层也通过GCD实现
+2. 依赖关系，NSOperation可以设置操作之间的依赖(可以跨队列设置)，GCD无法设置依赖关系，不过可以通过同步来实现这种效果；
+3. KVO(键值对观察)，NSOperation容易判断操作当前的状态(是否执行，是否取消等)，对此GCD无法通过KVO进行判断；
+4. 优先级，NSOperation可以设置自身的优先级，但是优先级高的不一定先执行，GCD只能设置队列的优先级，如果要区分block任务的优先级,需要很复杂的代码才能实现；
+5. 继承，NSOperation是一个抽象类.实际开发中常用的是它的两个子类:NSInvocationOperation和NSBlockOperation，同样我们可以自定义NSOperation，GCD执行任务可以自由组装，没有继承那么高的代码复用度；
+6. 效率，直接使用GCD效率确实会更高效，NSOperation会多一点开销，但是通过NSOperation可以获得依赖，优先级，继承，键值对观察这些优势，相对于多的那么一点开销确实很划算，鱼和熊掌不可得兼，取舍在于开发者自己；
+7. 可以随时取消准备执行的任务(已经在执行的不能取消),GCD没法停止已经加入queue 的 block(虽然也能实现,但是需要很复杂的代码)
+
+
+
+
 
 ###### 简介
 
@@ -101,6 +125,13 @@ add block 1: <NSThread: 0x608000066b00>{number = 3, name = (null)}
 
 -----
 
+###### 两种队列：
+
+- `[NSOperationQueue  mainQueue]`：主队列
+- `[NSOperaionQueue new]`：自定义队列
+
+
+
 ###### 作用
 
 ```
@@ -113,7 +144,7 @@ NSOperation可以调用start方法来执行任务，但默认是同步执行的
 ###### 最大并发数
 
 ```
-同时执行的任务数
+同时执行的任务数。默认值是-1，表示不进行限制。设置为1时，队列为串行队列。大于1时，队列为并发队列
 -(NSInteger)maxConcurrentOperationCount;
 -(void)setMaxConcurrentOperationCount:(NSInteger)cnt;
 ```
