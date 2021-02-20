@@ -2,11 +2,11 @@
 
 Request序列化UML：
 
-<img src='../img/Xnip2020-06-17_22-25-19.png' align=left>
+<img src='./img/Xnip2020-06-17_22-25-19.png' align=left>
 
 Response序列化UML：
 
-<img src='../img/Xnip2020-06-17_22-25-00.png' align=left>
+<img src='./img/Xnip2020-06-17_22-25-00.png' align=left>
 
 
 

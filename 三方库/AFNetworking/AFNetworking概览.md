@@ -2,6 +2,8 @@
 
 架构总览：
 
+<img src='./img/1.jpg'>
+
 AFNetworking一共分为5个模块，3个核心模块和2个辅助模块
 
 - 核心模块
@@ -26,3 +28,4 @@ AFNetworking一共分为5个模块，3个核心模块和2个辅助模块
 - 辅助模块
   - Reachability（网络状态监听模块）
   - UIKit（对 iOS 系统 UI 控件的扩展）
+

@@ -1,5 +1,7 @@
 ## weak和assign的区别
 
+----------------
+
 我们先来讨论一个问题，assgin关键字修饰的属性能否是`对象类型`?
 
 ```objective-c
@@ -11,8 +13,12 @@
 野指针！出现野指针的时候，往往会出现下面三种情形：
 
 - 该空间一直空闲，调用该属性会引发EXC_BAD_ACCESS；
+
 - 该空间被其他对象申请并占用，当调用该野指针的方法`methodA`时，这个空间上被分配的新对象并没有方法`methodA`， 会出现方法找不到：`[xxx methodA] unrecognized selector sent to instance 0x1xxxxxxxx`;
+
 - 该空间被其他对象申请并占用，当调用该野指针的方法`methodA`时，这个空间上被分配的新对象刚好也包含方法`methodA`， 调用之后不会出现任何crash;
+
+  
 
 出现了这么多问题，也就是说assign不能用来修饰对象了吧？那么和weak对比又有什么意义吗？毕竟weak只能修饰object类型
 

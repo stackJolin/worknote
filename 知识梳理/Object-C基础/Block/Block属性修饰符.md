@@ -1,7 +1,11 @@
-## Block内存详解
+## Block的属性修饰符
 
-https://www.jianshu.com/p/4a6dca34d980
+------------
 
-https://github.com/nst/iOS-Runtime-Headers/tree/master/Frameworks/CoreFoundation.framework
+1.block无论使用`strong`还是`copy`，执行的都是copy操作
 
-block源码：https://opensource.apple.com/source/libclosure/libclosure-67/
+2.如果使用`retain`修饰block的时候，相当于assign
+
+3.`block`作为返回值时，会自动copy
+
+3.`block`赋值给变量的时候，会自动copy

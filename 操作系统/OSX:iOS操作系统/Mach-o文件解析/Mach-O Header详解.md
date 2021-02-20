@@ -13,10 +13,7 @@ Header的主要作用：
 `struct mach_header`结构体如下：
 
 ```c++
-/*
- * The 32-bit mach header appears at the very beginning of the object file for
- * 32-bit architectures.
- */
+// 32位架构的header
 struct mach_header {
 	uint32_t	magic;		/* mach magic number identifier */
 	cpu_type_t	cputype;	/* cpu specifier */
@@ -31,10 +28,7 @@ struct mach_header {
 #define	MH_MAGIC	0xfeedface	/* the mach magic number */
 #define MH_CIGAM	0xcefaedfe	/* NXSwapInt(MH_MAGIC) */
 
-/*
- * The 64-bit mach header appears at the very beginning of object files for
- * 64-bit architectures.
- */
+// 64位架构的header
 struct mach_header_64 {
 	uint32_t	magic;		/* mach magic number identifier */
 	cpu_type_t	cputype;	/* cpu specifier */

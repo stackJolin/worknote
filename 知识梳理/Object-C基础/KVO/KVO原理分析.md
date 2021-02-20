@@ -12,6 +12,23 @@ KVO是根据KVC来实现的
 
 ----
 
+```markdown
+// 三个重要的方法
+- (void)willChangeValueForKey:(NSString *)key;
+- (void)didChangeValueForKey:(NSString *)key;
++ (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key;
+```
+
+
+
+#### 原理分析
+
+-------
+
+在对`obj`执行`addObserver`的操作之后，会动态生成一个obj的子类对象，这个对象是`NSKVONotifyin_obj`。
+
+
+
 
 
 #### 相关文章
@@ -29,6 +46,8 @@ KVO是根据KVC来实现的
   https://www.jianshu.com/p/a25488928a30
 
 - https://juejin.im/post/5d19fa62f265da1ba91595bb
+
+- https://juejin.cn/post/6844903593925935117
 
 #### 相关应用
 

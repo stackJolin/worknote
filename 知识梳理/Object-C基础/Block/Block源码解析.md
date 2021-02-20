@@ -2,10 +2,10 @@
 
 这一个专题，主要研究一下几个问题：
 
-- NSGlobalBlock、NSStackBlock和NSMallocBlock的C++源码研究，既说明为什么Block是一个对象
+- `__NSConcreteGlobalBlock__`、`__NSConcreteStackBlock__`和`__NSConcreteMallocBlock__`的C++源码研究，既说明为什么Block是一个对象
 - Block中引用局部变量的时候，C++源码研究
 - Block中修改外部变量的时候，C++源码研究
-- __block和问题和auto变量的问题
+- __block和问题和auto变量(自动变量即是局部变量)的问题
 - 循环引用和接触循环引用的问题
 
 
@@ -24,6 +24,7 @@ struct Block_layout {
     volatile int32_t flags; // contains ref count
     int32_t reserved; 
     void (*invoke)(void *, ...);
+    // block附加描述信息，主要保存了内存size以及copy和dispose函数的指针及签名和layout等信息，通过源码可发现，layout中只包含了Block_descriptor_1，并未包含Block_descriptor_2和Block_descriptor_3，这是因为在捕获不同类型变量或者没用到外部变量时，编译器会改变结构体的结构，按需添加Block_descriptor_2和Block_descriptor_3，所以才需要BLOCK_HAS_COPY_DISPOSE和BLOCK_HAS_SIGNATURE等枚举来判断
     struct Block_descriptor_1 *descriptor;
     // imported variables
 };
@@ -55,7 +56,7 @@ struct Block_descriptor_3 {
 3. reserved，保留变量。
 4. invoke，函数指针，指向具体的 block 实现的函数调用地址。
 5. descriptor， 表示该 block 的附加描述信息，主要是 size 大小，以及 copy 和 dispose 函数的指针。
-6. variables，capture 过来的变量，block 能够访问它外部的局部变量，就是因为将这些变量（或变量的地址）复制到了结构体中。
+6. variables，捕获过来的变量，block 能够访问它外部的局部变量，就是因为将这些变量（或变量的地址）复制到了结构体中。
 
 <font color=orange>Block_descriptor_1、Block_descriptor_2、Block_descriptor_3：</font>
 
@@ -122,13 +123,61 @@ enum {
 
 
 
-<font color='red'>我们，在这里讨论一个问题：为什么Block_layout和下面实现的</font>
+#### _Block_byref
 
-#### 为什么说Block是一个对象
+-------
+
+```c++
+
+struct Block_byref {
+    void *isa; // 指向父类，一般执行0
+    struct Block_byref *forwarding; // 在占中指向自己，block copy后指向堆中的byref
+    volatile int32_t flags; // contains ref count
+    // block byref所占内存的大小
+    uint32_t size;
+};
+
+// 用来保存附加信息
+struct Block_byref_2 {
+    // requires BLOCK_BYREF_HAS_COPY_DISPOSE
+    BlockByrefKeepFunction byref_keep;
+    BlockByrefDestroyFunction byref_destroy;
+};
+// 用来保存附加信息
+struct Block_byref_3 {
+    // requires BLOCK_BYREF_LAYOUT_EXTENDED
+    const char *layout;
+};
+
+// Values for Block_byref->flags to describe __block variables
+enum {
+    // Byref refcount must use the same bits as Block_layout's refcount.
+    // BLOCK_DEALLOCATING =      (0x0001),  // runtime
+    // BLOCK_REFCOUNT_MASK =     (0xfffe),  // runtime
+
+    BLOCK_BYREF_LAYOUT_MASK =       (0xf << 28), // compiler
+    // 表示含有layout
+    BLOCK_BYREF_LAYOUT_EXTENDED =   (  1 << 28), // compiler
+    BLOCK_BYREF_LAYOUT_NON_OBJECT = (  2 << 28), // compiler
+    BLOCK_BYREF_LAYOUT_STRONG =     (  3 << 28), // compiler
+    BLOCK_BYREF_LAYOUT_WEAK =       (  4 << 28), // compiler
+    BLOCK_BYREF_LAYOUT_UNRETAINED = (  5 << 28), // compiler
+
+    BLOCK_BYREF_IS_GC =             (  1 << 27), // runtime
+    // 表示byref中含有copy_dispose函数，在__block捕获的变量为对象时，就会生成copy_dispose函数，用来管理对象内存
+    BLOCK_BYREF_HAS_COPY_DISPOSE =  (  1 << 25), // compiler
+    // 判断是否要释放
+    BLOCK_BYREF_NEEDS_FREE =        (  1 << 24), // runtime
+};
+```
+
+变量在被`__block`修饰的时候，由编译器生成的
+
+
+
+### _NSConcreteGlobalBlock
 
 -----
-
-<font color=orange>**NSGlobalBlock(没有引用非全局变量的block)-C++**</font>
 
 原始代码：
 
@@ -159,6 +208,7 @@ struct __main_block_impl_0 {
     struct __main_block_desc_0* Desc;
     // C++构造方法，第一个参数是函数指针
     __main_block_impl_0(void *fp, struct __main_block_desc_0 *desc, int flags=0) {
+        // 这里是_NSConcreteStackBlock而不是_NSConcreteGlobalBlock，原因是这里使用的是clang编译，而不是llvm。如果是llvm的话，就会是_NSConcreteGlobalBlock
         impl.isa = &_NSConcreteStackBlock;
         impl.Flags = flags;
         impl.FuncPtr = fp;
@@ -184,7 +234,11 @@ struct __block_impl {
 };
 ```
 
-<font color=orange>**NSStaticBlock(引用了外部变量(非全局变量)的block)-C++**</font>
+
+
+#### _NSConcreteStaticBlock
+
+----------
 
 源代码:
 
@@ -246,7 +300,9 @@ static void __main_block_func_0(struct __main_block_impl_0 *__cself, int a) {
 
 
 
-<font color=orange>**NSStaticBlock(引用了外部变量(非全局变量)的block)-C++**</font>
+#### __block修饰过的局部变量的block
+
+---------
 
 原始代码:
 
@@ -331,6 +387,16 @@ static void __main_block_func_0(struct __main_block_impl_0 *__cself, int a) {
 ```
 
 我们看到，有两个内存相关的函数`__main_block_copy_0`和`__main_block_dispose_0`，生成的C++代码文件里，并没有。其实，它属于runtime。我们会有其他文章详细讲解着两个函数
+
+
+
+总结：
+
+- `_NSConcreteGlobalBlock__`：没有捕获局部变量的block(可以捕获全局变量、局部静态变量、全局静态变量)
+- `_NSConcreteStackBlock`：捕获了局部变量的block
+- `_NSConcreteMallocBlock`：上面两种`block`执行copy操作，就会生成一个`__NSMallocBlock`
+
+
 
 #### 相关文章
 
