@@ -17,3 +17,12 @@
 
 ------
 
+多拥有设计代理类
+
+
+
+#### 相关文章
+
+------
+
+https://zhangbuhuai.com/post/nsproxy.html
