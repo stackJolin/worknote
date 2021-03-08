@@ -2,7 +2,7 @@
 
 -------
 
-`@syncronized`是一把自旋锁
+`@syncronized`是一把递归锁
 
 源码：https://opensource.apple.com/source/objc4/objc4-756.2/runtime/objc-private.h
 

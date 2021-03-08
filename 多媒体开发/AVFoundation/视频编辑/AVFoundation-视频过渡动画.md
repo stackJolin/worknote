@@ -1,4 +1,8 @@
-## AVFoundation简介
+## AVFoundation - 视频过渡动画
 
 -----
+
+使用到的主要的类或协议：
+
+- 
 

@@ -1,4 +1,0 @@
-## AVFoundation简介
-
------
-

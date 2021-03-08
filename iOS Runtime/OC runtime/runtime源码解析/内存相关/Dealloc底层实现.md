@@ -56,7 +56,7 @@ void *objc_destructInstance(id obj)
         bool assoc = obj->hasAssociatedObjects();
 
         // 下面这三个的执行顺序非常重要
-        // 释放实例变量等
+        // 1.释放实例变量等
         if (cxx) object_cxxDestruct(obj);
         // 2.移除关联对象
         if (assoc) _object_remove_assocations(obj);
@@ -68,7 +68,12 @@ void *objc_destructInstance(id obj)
 }
 ```
 
+基本上一个对象的释放有以下几个步骤：
 
+- 释放自身的成员变量
+- 移除自身的关联对象
+- 清空`refCountMap`和`weak_table_t`
+- 释放自己
 
 
 
