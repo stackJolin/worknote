@@ -31,6 +31,8 @@ SASL：Simple Authentication and Security Layer
 
 #### Openfire防火墙配置
 
+------------------
+
 systemctl stop firewalld
 
 -A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 9090 -j ACCEPT
